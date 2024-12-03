@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <Compile Include="AdventOfCode.fs" />
-    <Content Include="2024\Day01_Part1.txt" />
   </ItemGroup>
 
 </Project>
