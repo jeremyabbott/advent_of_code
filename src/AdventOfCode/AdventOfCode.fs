@@ -5,6 +5,9 @@ module Helpers =
     
     let readLines path =
         System.IO.File.ReadAllLines(path)
+        
+    let readText path = 
+        System.IO.File.ReadAllText(path)
 
 module Day1 =
     let getLocations input =
@@ -69,3 +72,50 @@ module Day2 =
             Helpers.readLines input
             |> Array.map(fun l -> l.Split(' ') |> Array.map int |> List.ofArray)
         reports |> Array.filter isSafeV2 |> Array.length
+        
+module Day3 =
+    open System.Text.RegularExpressions
+    
+    let mulExpressionRegex = Regex("mul\(\d+,\d+\)")
+    let mulNumberRegex = Regex("\d+")
+    let conditionalMatcher = Regex("do\(\)|don't\(\)|mul\(\d+,\d+\)")
+    
+    let findMulExpressions input =
+        let matches = mulExpressionRegex.Matches(input)
+        matches |> Seq.map(_.Value)
+        
+    let extractMulValues input =
+        let matches = mulNumberRegex.Matches(input)
+        matches
+        |> Seq.map(_.Value)
+        |> Seq.map(int)
+        |> Array.ofSeq
+        |> (fun items -> (items.[0], items.[1]))
+        
+    let solvePart1 input =
+        findMulExpressions input
+        |> Seq.map extractMulValues
+        |> Seq.map(fun (a, b) -> a * b)
+        |> Seq.sum
+        
+    let solvePart2 input =
+        let matches =
+            conditionalMatcher.Matches(input)
+            |> Seq.map(_.Value)
+            |> List.ofSeq
+        let initialState = (true, "")
+        let rec solver state parts =
+            let isSafe, buffer = state
+            match parts with
+            | [] -> state
+            | head :: tail ->
+                match head with
+                | "do()" -> solver (true, buffer) tail
+                | "don't()" -> solver (false, buffer) tail
+                | _ ->
+                    let newBuffer = if isSafe then buffer + head else buffer
+                    let newState = (isSafe, newBuffer)
+                    solver newState tail
+        let _, result = solver initialState matches
+        solvePart1 result
+        
